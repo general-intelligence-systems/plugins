@@ -13,16 +13,13 @@
       "relevance": {
         "topic": "CnStudio",
         "signals": {
-          "cwd": [
-            "**/kremlin"
+          "cli": [
+            "cnstudio"
           ],
           "filesRead": [
             "**/.studio/**",
             "**/studio.config.js",
             "**/studio.config.mjs"
-          ],
-          "cli": [
-            "cnstudio"
           ]
         }
       }

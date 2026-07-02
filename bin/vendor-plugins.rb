@@ -7,7 +7,7 @@
 #   [
 #     { "repo": "owner/name", "path": "local-dir" },
 #     { "repo": "owner/name", "path": "other-dir", "ref": "v1.2.0",
-#       "overrides": { "relevance": { "...": "deep-merged into each entry" } } }
+#       "overrides": { "relevance": { "...": "replaces that key on each entry" } } }
 #   ]
 #
 # For each entry the repo is cloned and rsynced into <path>/. Plugin entries
@@ -25,10 +25,6 @@ CONFIG = "vendor-plugins.json"
 
 def sh!(*cmd)
   system(*cmd) or abort("command failed: #{cmd.join(" ")}")
-end
-
-def deep_merge(a, b)
-  a.merge(b) { |_, x, y| x.is_a?(Hash) && y.is_a?(Hash) ? deep_merge(x, y) : y }
 end
 
 def plugin_entries(path)
@@ -68,7 +64,7 @@ JSON.parse(File.read(CONFIG)).each do |cfg|
     sh!("rsync", "-a", "--delete", "--exclude", ".git", "#{tmp}/", "#{path}/")
     File.write(File.join(path, ".vendored-from"), "#{repo}@#{upstream}\n")
 
-    entries = plugin_entries(path).map { |e| deep_merge(e, cfg.fetch("overrides", {})) }
+    entries = plugin_entries(path).map { |e| e.merge(cfg.fetch("overrides", {})) }
     generated.concat(entries)
     vendored_paths << path
     puts "Vendored #{repo}@#{upstream} -> #{path}/ (#{entries.size} plugin entries)"
