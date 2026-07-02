@@ -1,0 +1,16 @@
+{
+  "name": "bpm",
+  "description": "BPM tooling for Claude Code: author bpmn-io form-js form schemas (create/edit forms, validation) that form-js-viewer can render.",
+  "version": "0.1.0",
+  "author": {
+    "name": "General Intelligence Systems",
+    "url": "https://github.com/general-intelligence-systems"
+  },
+  "repository": "https://github.com/general-intelligence-systems/plugins",
+  "keywords": [
+    "bpm",
+    "bpmn-io",
+    "form-js",
+    "forms"
+  ]
+}
