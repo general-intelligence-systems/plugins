@@ -13,6 +13,8 @@ on:
     branches: [main]
     paths:
       - bin/vendor-plugins.rb
+      - bin/generate-readme
+      - README.md.erb
       - .github/workflows/vendor-plugins.yaml
 
 permissions:
@@ -34,6 +36,9 @@ jobs:
             - repo: cnstudio-io/plugins
               path: cnstudio
         run: ruby bin/vendor-plugins.rb
+
+      - name: Regenerate README.md
+        run: ruby bin/generate-readme
 
       - name: Commit and push
         run: |

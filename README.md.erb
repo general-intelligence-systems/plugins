@@ -1,0 +1,25 @@
+# General Intelligence Systems — Claude Code Plugins
+
+## Install
+
+Add the marketplace in Claude Code:
+
+```
+/plugin marketplace add general-intelligence-systems/plugins
+```
+
+Then install a plugin:
+
+```
+/plugin install <%= plugins.first["name"] %>@<%= marketplace %>
+```
+
+Or browse everything with `/plugin`.
+
+## Available plugins
+
+| Plugin | Description |
+| --- | --- |
+<% plugins.each do |plugin| -%>
+| `<%= plugin["name"] %>` | <%= plugin["description"] %> |
+<% end -%>

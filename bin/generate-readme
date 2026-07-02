@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+# Renders README.md from README.md.erb using the plugin list in
+# .claude-plugin/marketplace.json. Run after vendoring so the README always
+# reflects the generated manifest.
+#
+# Template bindings: `marketplace` (name string), `plugins` (array of entries).
+
+require "json"
+require "erb"
+
+manifest = JSON.parse(File.read(".claude-plugin/marketplace.json"))
+marketplace = manifest.fetch("name")
+plugins = manifest.fetch("plugins", [])
+
+template = ERB.new(File.read("README.md.erb"), trim_mode: "-")
+File.write("README.md", template.result(binding))
+puts "Generated README.md (#{plugins.size} plugins)."
