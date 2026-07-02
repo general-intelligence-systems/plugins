@@ -1,0 +1,25 @@
+{
+  "name": "general-intelligence-systems",
+  "description": "Claude Code plugin marketplace for General Intelligence Systems.",
+  "owner": {
+    "name": "General Intelligence Systems",
+    "url": "https://github.com/general-intelligence-systems"
+  },
+  "plugins": [
+    {
+      "name": "studio",
+      "source": {
+        "source": "github",
+        "repo": "cnstudio-io/plugins"
+      },
+      "description": "CnStudio design tools for Claude Code: MCP server connection, design-model skill, and slash commands.",
+      "relevance": {
+        "topic": "CnStudio",
+        "signals": {
+          "cli": ["cnstudio"],
+          "filesRead": ["**/.studio/**"]
+        }
+      }
+    }
+  ]
+}
