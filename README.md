@@ -11,7 +11,7 @@ Add the marketplace in Claude Code:
 Then install a plugin:
 
 ```
-/plugin install studio@general-intelligence-systems
+/plugin install cnstudio@general-intelligence-systems
 ```
 
 Or browse everything with `/plugin`.
@@ -21,4 +21,4 @@ Or browse everything with `/plugin`.
 | Plugin | Description |
 | --- | --- |
 | `bpm` | BPM tooling: author bpmn-io form-js form schemas (create/edit forms, validation). |
-| `studio` | CnStudio design tools for Claude Code: MCP server connection, design-model skill, and slash commands. |
+| `cnstudio` | CnStudio design tools for Claude Code: MCP server connection, design-model skill, and slash commands. |
