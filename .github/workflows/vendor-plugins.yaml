@@ -33,15 +33,6 @@ jobs:
           VENDOR_PLUGINS: |
             - repo: cnstudio-io/plugins
               path: cnstudio
-              overrides:
-                relevance:
-                  topic: CnStudio
-                  signals:
-                    cli: [cnstudio]
-                    filesRead:
-                      - "**/.studio/**"
-                      - "**/studio.config.js"
-                      - "**/studio.config.mjs"
         run: ruby bin/vendor-plugins.rb
 
       - name: Commit and push
