@@ -6,6 +6,7 @@
       "relevance": {
         "topic": "CnStudio",
         "signals": {
+          "cwd": ["**/kremlin"],
           "cli": ["cnstudio"],
           "filesRead": ["**/.studio/**"]
         }
