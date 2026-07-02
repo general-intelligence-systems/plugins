@@ -3,12 +3,15 @@
 # plugins array in .claude-plugin/marketplace.json from the vendored repos'
 # own manifests.
 #
-# Config lives in vendor-plugins.json at the repo root:
-#   [
-#     { "repo": "owner/name", "path": "local-dir" },
-#     { "repo": "owner/name", "path": "other-dir", "ref": "v1.2.0",
-#       "overrides": { "relevance": { "...": "replaces that key on each entry" } } }
-#   ]
+# Config is a YAML list in the VENDOR_PLUGINS environment variable, set in
+# the workflow that invokes this script:
+#   - repo: owner/name
+#     path: local-dir
+#   - repo: owner/name
+#     path: other-dir
+#     ref: v1.2.0            # optional branch/tag pin
+#     overrides:             # optional; each key replaces that key on each entry
+#       relevance: { ... }
 #
 # For each entry the repo is cloned and rsynced into <path>/. Plugin entries
 # come from <path>/.claude-plugin/marketplace.json (sources rewritten to
@@ -17,11 +20,11 @@
 # replaced; hand-written entries elsewhere are preserved.
 
 require "json"
+require "yaml"
 require "fileutils"
 require "tmpdir"
 
 MANIFEST = ".claude-plugin/marketplace.json"
-CONFIG = "vendor-plugins.json"
 
 def sh!(*cmd)
   system(*cmd) or abort("command failed: #{cmd.join(" ")}")
@@ -51,7 +54,7 @@ end
 generated = []
 vendored_paths = []
 
-JSON.parse(File.read(CONFIG)).each do |cfg|
+YAML.safe_load(ENV.fetch("VENDOR_PLUGINS") { abort("set VENDOR_PLUGINS to a YAML list of repos to vendor") }).each do |cfg|
   repo, path, ref = cfg.values_at("repo", "path", "ref")
   if path.to_s.empty? || path.start_with?("/") || path.split("/").any? { |seg| seg == "." || seg == ".." }
     abort("unsafe path: #{path.inspect}")

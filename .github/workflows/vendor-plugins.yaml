@@ -2,8 +2,8 @@ name: Vendor plugins
 
 # Vendors external plugin repos into this marketplace repo and regenerates
 # .claude-plugin/marketplace.json from their manifests.
-# Config: vendor-plugins.json — logic: bin/vendor-plugins.rb.
-# Drop the workflow, script, and config into any marketplace repo to reuse it.
+# Configure the list in the VENDOR_PLUGINS env below — logic: bin/vendor-plugins.rb.
+# Drop the workflow + script into any marketplace repo and edit the list to reuse it.
 
 on:
   schedule:
@@ -12,7 +12,6 @@ on:
   push:
     branches: [main]
     paths:
-      - vendor-plugins.json
       - bin/vendor-plugins.rb
       - .github/workflows/vendor-plugins.yaml
 
@@ -30,6 +29,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Vendor repos and regenerate marketplace.json
+        env:
+          VENDOR_PLUGINS: |
+            - repo: cnstudio-io/plugins
+              path: cnstudio
+              overrides:
+                relevance:
+                  topic: CnStudio
+                  signals:
+                    cli: [cnstudio]
+                    filesRead:
+                      - "**/.studio/**"
+                      - "**/studio.config.js"
+                      - "**/studio.config.mjs"
         run: ruby bin/vendor-plugins.rb
 
       - name: Commit and push
