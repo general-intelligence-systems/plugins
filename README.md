@@ -16,7 +16,24 @@ Then browse and install plugins with `/plugin`.
 
 | Plugin | Description |
 | --- | --- |
-| `studio` | CnStudio design tools for Claude Code: MCP server connection, design-model skill, and slash commands. Sourced from [cnstudio-io/plugins](https://github.com/cnstudio-io/plugins). |
+| `studio` | CnStudio design tools for Claude Code: MCP server connection, design-model skill, and slash commands. Vendored from [cnstudio-io/plugins](https://github.com/cnstudio-io/plugins). |
+
+## Vendoring
+
+External plugins are vendored into this repo by the reusable
+[`vendor-plugins.yaml`](.github/workflows/vendor-plugins.yaml) workflow, which runs
+daily (and on demand via *Run workflow*). The list of vendored repos lives in
+[`vendor-plugins.json`](vendor-plugins.json):
+
+```json
+[
+  { "repo": "cnstudio-io/plugins", "path": "cnstudio" }
+]
+```
+
+Each entry clones `repo` and syncs its contents into `path/` (add `"ref"` to pin a
+branch or tag). To reuse this in any other marketplace repo, copy the workflow file
+and a `vendor-plugins.json` with your own list.
 
 ## Recommended marketplaces
 

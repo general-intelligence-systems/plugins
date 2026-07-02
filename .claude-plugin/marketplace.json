@@ -8,10 +8,7 @@
   "plugins": [
     {
       "name": "studio",
-      "source": {
-        "source": "github",
-        "repo": "cnstudio-io/plugins"
-      },
+      "source": "./cnstudio",
       "description": "CnStudio design tools for Claude Code: MCP server connection, design-model skill, and slash commands.",
       "relevance": {
         "topic": "CnStudio",

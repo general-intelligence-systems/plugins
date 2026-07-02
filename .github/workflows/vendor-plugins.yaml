@@ -1,0 +1,66 @@
+name: Vendor plugins
+
+# Vendors external plugin repos into this marketplace repo.
+# Configure the list in vendor-plugins.json at the repo root:
+#   [
+#     { "repo": "owner/name", "path": "local-dir" },
+#     { "repo": "owner/name", "path": "other-dir", "ref": "v1.2.0" }
+#   ]
+# Drop this workflow + config file into any marketplace repo to reuse it.
+
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - vendor-plugins.json
+      - .github/workflows/vendor-plugins.yaml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vendor-plugins
+  cancel-in-progress: false
+
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vendor configured repos
+        run: |
+          set -euo pipefail
+          jq -c '.[]' vendor-plugins.json | while read -r entry; do
+            repo=$(jq -r '.repo' <<<"$entry")
+            path=$(jq -r '.path' <<<"$entry")
+            ref=$(jq -r '.ref // empty' <<<"$entry")
+
+            case "$path" in
+              ""|/*|.|..|*..*) echo "Refusing unsafe path: '$path'" >&2; exit 1 ;;
+            esac
+
+            tmp=$(mktemp -d)
+            git clone --depth 1 ${ref:+--branch "$ref"} "https://github.com/$repo.git" "$tmp"
+            upstream=$(git -C "$tmp" rev-parse HEAD)
+            mkdir -p "$path"
+            rsync -a --delete --exclude '.git' "$tmp/" "$path/"
+            echo "$repo@$upstream" > "$path/.vendored-from"
+            rm -rf "$tmp"
+            echo "Vendored $repo@$upstream -> $path/"
+          done
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Vendored plugins are up to date."
+            exit 0
+          fi
+          git commit -m "chore: update vendored plugins"
+          git push
