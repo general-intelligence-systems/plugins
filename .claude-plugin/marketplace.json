@@ -17,7 +17,9 @@
             "**/kremlin"
           ],
           "filesRead": [
-            "**/.studio/**"
+            "**/.studio/**",
+            "**/studio.config.js",
+            "**/studio.config.mjs"
           ],
           "cli": [
             "cnstudio"
