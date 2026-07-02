@@ -1,12 +1,9 @@
 name: Vendor plugins
 
-# Vendors external plugin repos into this marketplace repo.
-# Configure the list in vendor-plugins.json at the repo root:
-#   [
-#     { "repo": "owner/name", "path": "local-dir" },
-#     { "repo": "owner/name", "path": "other-dir", "ref": "v1.2.0" }
-#   ]
-# Drop this workflow + config file into any marketplace repo to reuse it.
+# Vendors external plugin repos into this marketplace repo and regenerates
+# .claude-plugin/marketplace.json from their manifests.
+# Config: vendor-plugins.json — logic: bin/vendor-plugins.rb.
+# Drop the workflow, script, and config into any marketplace repo to reuse it.
 
 on:
   schedule:
@@ -16,6 +13,7 @@ on:
     branches: [main]
     paths:
       - vendor-plugins.json
+      - bin/vendor-plugins.rb
       - .github/workflows/vendor-plugins.yaml
 
 permissions:
@@ -31,27 +29,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Vendor configured repos
-        run: |
-          set -euo pipefail
-          jq -c '.[]' vendor-plugins.json | while read -r entry; do
-            repo=$(jq -r '.repo' <<<"$entry")
-            path=$(jq -r '.path' <<<"$entry")
-            ref=$(jq -r '.ref // empty' <<<"$entry")
-
-            case "$path" in
-              ""|/*|.|..|*..*) echo "Refusing unsafe path: '$path'" >&2; exit 1 ;;
-            esac
-
-            tmp=$(mktemp -d)
-            git clone --depth 1 ${ref:+--branch "$ref"} "https://github.com/$repo.git" "$tmp"
-            upstream=$(git -C "$tmp" rev-parse HEAD)
-            mkdir -p "$path"
-            rsync -a --delete --exclude '.git' "$tmp/" "$path/"
-            echo "$repo@$upstream" > "$path/.vendored-from"
-            rm -rf "$tmp"
-            echo "Vendored $repo@$upstream -> $path/"
-          done
+      - name: Vendor repos and regenerate marketplace.json
+        run: ruby bin/vendor-plugins.rb
 
       - name: Commit and push
         run: |

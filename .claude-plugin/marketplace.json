@@ -13,8 +13,15 @@
       "relevance": {
         "topic": "CnStudio",
         "signals": {
-          "cli": ["cnstudio"],
-          "filesRead": ["**/.studio/**"]
+          "cwd": [
+            "**/kremlin"
+          ],
+          "filesRead": [
+            "**/.studio/**"
+          ],
+          "cli": [
+            "cnstudio"
+          ]
         }
       }
     }
