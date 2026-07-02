@@ -12,7 +12,7 @@
       "description": "BPM tooling for Claude Code: author bpmn-io form-js form schemas (create/edit forms, validation) that form-js-viewer can render."
     },
     {
-      "name": "studio",
+      "name": "cnstudio",
       "source": "./cnstudio",
       "description": "CnStudio design tools for Claude Code: MCP server connection, design-model skill, and slash commands.",
       "relevance": {
