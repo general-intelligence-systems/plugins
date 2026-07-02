@@ -2,7 +2,7 @@ name: Vendor plugins
 
 # Vendors external plugin repos into this marketplace repo and regenerates
 # .claude-plugin/marketplace.json from their manifests.
-# Configure the list in the VENDOR_PLUGINS env below — logic: bin/vendor-plugins.rb.
+# Configure the list in the VENDOR_PLUGINS env below — logic: .github/bin/vendor-plugins.rb.
 # Drop the workflow + script into any marketplace repo and edit the list to reuse it.
 
 on:
@@ -12,8 +12,8 @@ on:
   push:
     branches: [main]
     paths:
-      - bin/vendor-plugins.rb
-      - bin/generate-readme
+      - .github/bin/vendor-plugins.rb
+      - .github/bin/generate-readme
       - README.md.erb
       - .github/workflows/vendor-plugins.yaml
 
@@ -35,10 +35,10 @@ jobs:
           VENDOR_PLUGINS: |
             - repo: cnstudio-io/plugins
               path: cnstudio
-        run: ruby bin/vendor-plugins.rb
+        run: ruby .github/bin/vendor-plugins.rb
 
       - name: Regenerate README.md
-        run: ruby bin/generate-readme
+        run: ruby .github/bin/generate-readme
 
       - name: Commit and push
         run: |
