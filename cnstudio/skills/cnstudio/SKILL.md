@@ -54,8 +54,9 @@ mcp() { curl -sN "$URL" -H "mcp-session-id: $SID" -H 'Content-Type: application/
   code component (registry id: `@/components/ui/button#Button`).
 - **Prop values are JS expression source strings**: `"'ghost'"` is the literal
   string ghost, `"$props.title"` / `"$ctx.menu"` are bindings, plain `42` /
-  `true` are literals. Event props (`onX`) are statement bodies with `$event`
-  in scope.
+  `true` are literals. Event props (`onX`) follow the same rule — the
+  expression must evaluate to a function: `"$ctx.save"` binds the handler
+  itself; inline logic is an arrow, `"(e) => $ctx.setId(e.target.value)"`.
 - **Slots**: a component declares where instance children render with Slot
   markers — `{ "type": "Slot", "props": { "name": "main" } }`. Every slot is
   NAMED. An instance's children route to a slot via the reserved `slot` prop.
@@ -88,3 +89,16 @@ Check the project's own CLAUDE.md / skills for its conventions (page naming,
 shell composition, routing wiring for new pages). Verify edits with
 `getLayers` and, for pages, by fetching the generated module through the dev
 server.
+
+## Component architecture is the user's decision
+
+Do NOT create new components, files, or splits — design-document components
+or code components — unless the user explicitly asks for them. "Separation
+of concerns" is not a license to restructure: where something lives, whether
+it is split out, and what it is called are the user's calls, not yours.
+
+If what the user specified cannot work as specified (a rendering blocker, a
+framework limitation), STOP and report why — with options if useful — and
+let the user choose. Never restructure their architecture to work around a
+blocker. When placement or naming of something new is unspecified, ask, or
+take the most literal interpretation of the user's words.
