@@ -53,10 +53,11 @@ mcp() { curl -sN "$URL" -H "mcp-session-id: $SID" -H 'Content-Type: application/
   component (bare name, may be path-like: `page/calendar`) or a registered
   code component (registry id: `@/components/ui/button#Button`).
 - **Prop values are JS expression source strings**: `"'ghost'"` is the literal
-  string ghost, `"$props.title"` / `"$ctx.menu"` are bindings, plain `42` /
-  `true` are literals. Event props (`onX`) follow the same rule — the
-  expression must evaluate to a function: `"$ctx.save"` binds the handler
-  itself; inline logic is an arrow, `"(e) => $ctx.setId(e.target.value)"`.
+  string ghost, `"$props.title"` / `"$ctx.shell.menu"` are bindings, plain
+  `42` / `true` are literals. Event props (`onX`) follow the same rule — the
+  expression must evaluate to a function: `"$ctx.shell.logout"` binds the
+  handler itself; inline logic is an arrow,
+  `"(e) => { $ctx.calendar.id = Number(e.target.value) }"`.
 - **Slots**: a component declares where instance children render with Slot
   markers — `{ "type": "Slot", "props": { "name": "main" } }`. Every slot is
   NAMED. An instance's children route to a slot via the reserved `slot` prop.
@@ -64,6 +65,38 @@ mcp() { curl -sN "$URL" -H "mcp-session-id: $SID" -H 'Content-Type: application/
   `"'main'"`) — the one exception to the expression rule.
 - Slot **forwarding**: a marker that is itself a fill
   (`{ name: "outer", slot: "inner" }`) declares one slot and routes it onward.
+
+## $ctx: the data-binding store (cnstudio ≥ 0.5)
+
+`$ctx` is one app-wide store of **namespaces** — readable and WRITABLE from
+any expression. Reads subscribe (the node re-renders when the keys it read
+change); assignments mutate the store: `"$ctx.calendar.id = 5"` in a handler
+updates every reader, wherever it sits in the tree. Position governs
+lifecycle only, never visibility.
+
+- **Top-level `$ctx` keys are namespaces, never data** — `$ctx.shell.isActive`,
+  not `$ctx.isActive`. Reading an undefined namespace auto-vivifies an empty
+  object (`$ctx.anything` is never undefined), so guard KEYS, not namespaces:
+  `"$ctx.calendar.timelines?.length > 0"`, `"$ctx.calendar.id ?? ''"`.
+- **State lives in the design doc, not in provider components.** UI state is
+  just `$ctx` keys the page's handlers assign (`"(v) => { $ctx.calendar.zoom
+  = v[0] }"`). Compound and nullish assignment work: `"$ctx.calendar.id ??=
+  list[0]?.id ?? null"`.
+- **The reserved `useEffect` prop** is how a page owns its data loading: a
+  function-valued expression on any node, run as a React effect on mount
+  (codegen hoists it to a real `useEffect(...)`; the canvas runs it per node).
+  Typical page-root effect:
+  `"async () => { try { $ctx.x.list = await $ctx.api.get('/api/x') } catch (e) { $ctx.x.error = String(e) } }"`
+  Effects on conditionally-rendered nodes still run on page mount, and a
+  `Loop`'s effect runs once — not per item.
+- **Code components publish constants/actions** the design can't express by
+  defining their namespace at module scope:
+  `ctxSlice("zoom", { min: ZOOM_MIN, max: ZOOM_MAX })` (from
+  `@cnstudio-io/cnstudio/react-web`) — seeding is idempotent and never
+  clobbers written keys. A conventional root `api` slice (`$ctx.api.get/post/…`)
+  is how effects and handlers reach the backend; check the project for it.
+- The canvas seeds `$ctx` from `.studio/dev-context.json` (JSON only — no
+  functions), namespaced the same way.
 
 ## Tools
 
