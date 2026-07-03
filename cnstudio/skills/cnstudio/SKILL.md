@@ -95,8 +95,45 @@ lifecycle only, never visibility.
   `@cnstudio-io/cnstudio/react-web`) — seeding is idempotent and never
   clobbers written keys. A conventional root `api` slice (`$ctx.api.get/post/…`)
   is how effects and handlers reach the backend; check the project for it.
-- The canvas seeds `$ctx` from `.studio/dev-context.json` (JSON only — no
-  functions), namespaced the same way.
+- The canvas seeds `$ctx` from `.studio/dev-context.js` (preferred) or
+  `.studio/dev-context.json`, namespaced the same way — see below.
+
+## Sample data on the canvas (dev-context)
+
+The canvas is a real render of the page, so it needs `$ctx` filled the way the
+app would fill it. Two files under `.studio/` do this (the `.js` form
+supersedes the `.json` when both exist):
+
+- **`.studio/dev-context.js`** — a module whose DEFAULT EXPORT is the example
+  `$ctx` object. Because it's a module (served through Vite: `@/` aliases
+  work), it can also `import` the project's slice-defining provider modules
+  for their side effects, so the REAL function slices (`$ctx.api`,
+  `$ctx.helpers`, …) exist on the canvas:
+
+  ```js
+  import "@/components/providers/api-provider"     // real $ctx.api on canvas
+  export default {
+    shell: { crumbs: ["home"], menu: { leaves: [], groups: [] } },
+    notifications: { loaded: true, unreadCount: 2, all: [ /* items */ ] },
+  }
+  ```
+
+- **`.studio/dev-context.json`** — the data-only fallback (JSON: no functions).
+
+**Seed-aware effects.** A page-root `useEffect` that always fetches will
+clobber the canvas's sample data (and error when the canvas isn't
+authenticated). Guard on the data KEY — namespaces auto-vivify, so testing
+the namespace itself is always truthy:
+
+```
+"async () => { if ($ctx.notifications.all) return; try { const res = await
+$ctx.api.get('/api/notifications'); $ctx.notifications.all = res.notifications }
+catch (e) { $ctx.notifications.error = String(e) } }"
+```
+
+Seeded (canvas) → the fetch is skipped and the sample data stands. Unseeded
+(the real app) → the page loads its own data. Keep the sample seed under the
+page's namespace with the SAME key names the page binds to.
 
 ## Tools
 
