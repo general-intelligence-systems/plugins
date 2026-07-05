@@ -1,0 +1,17 @@
+{
+  "name": "ruby-development",
+  "description": "General Ruby development tooling for Claude Code: skills for idiomatic modern Ruby, starting with HTTP clients via the http.rb gem.",
+  "version": "0.1.0",
+  "author": {
+    "name": "General Intelligence Systems",
+    "url": "https://github.com/general-intelligence-systems"
+  },
+  "repository": "https://github.com/general-intelligence-systems/plugins",
+  "keywords": [
+    "ruby",
+    "http",
+    "http.rb",
+    "rest",
+    "api-client"
+  ]
+}

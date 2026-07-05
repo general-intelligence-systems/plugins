@@ -12,9 +12,27 @@
       "description": "BPM tooling for Claude Code: author bpmn-io form-js form schemas (create/edit forms, validation) that form-js-viewer can render."
     },
     {
+      "name": "ruby-development",
+      "source": "./ruby-development",
+      "description": "General Ruby development tooling for Claude Code: skills for idiomatic modern Ruby, starting with HTTP clients via the http.rb gem (chainable API, response pattern matching, persistent connections)."
+    },
+    {
       "name": "ruby-gtk",
       "source": "./ruby-gtk",
       "description": "Ruby GTK4/Libadwaita tooling for Claude Code: build, review, and plan Ruby GTK4 desktop apps using the declarative memoized-widget pattern."
+    },
+    {
+      "name": "rubycam",
+      "source": "./rubycam",
+      "description": "Webcam control for Claude Code via the rubycam CLI: drive any UVC camera (pan/tilt/zoom, image controls, snapshots) plus OBSBOT Tiny 2 vendor features (wake/sleep, AI tracking, presets, HDR, exposure).",
+      "relevance": {
+        "topic": "webcam control",
+        "signals": {
+          "cli": [
+            "rubycam"
+          ]
+        }
+      }
     },
     {
       "name": "cnstudio",
