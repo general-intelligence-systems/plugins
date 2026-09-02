@@ -75,27 +75,34 @@ action.state.get_boolean      # NoMethodError: undefined method for true
 # The activate parameter is unwrapped too:
 action.signal_connect('activate') { |_, parameter| parameter }   # => "by_title", a String
 
-# But assigning state still requires a Variant:
+# But `state=` casts to GVariant* without a type check, so it does not raise:
 action.state = GLib::Variant.new(false)   # correct
-action.state = parameter                  # warns, silently does not update
-action.state = true                       # aborts the process
+action.state = 'a string'                 # warns to stderr, silently ignored
+action.state = true                       # SIGSEGV - takes the process down
+action.state = action.state               # SIGSEGV, from a plain round trip
 ```
 
-So a radio or toggle action generally wants:
+`change_state` is the same operation done safely - it validates against the
+action's declared state type and accepts plain Ruby values as well as
+GVariants - so prefer it and the problem disappears:
 
 ```ruby
 action.signal_connect('activate') do |_, parameter|
-  action.state = GLib::Variant.new(parameter)   # re-wrap what arrived unwrapped
+  action.change_state(parameter)          # safe with the unwrapped value
   config.sort_order = parameter.to_sym
 end
 ```
 
-Menu actions are therefore high-value test targets. `action.state = parameter`
-only warns to stderr, so the app keeps running with the wrong menu item ticked;
-`state.get_boolean` raises the moment a toggle is used; and a plain boolean
-assignment takes the whole process down. None of that shows up in `ruby -c`, in
-a successful require, or in a screenshot of the window at rest - you have to
-activate the action and read the state back:
+`Gtk::Actionable#action_target=` has the same unchecked cast with a quieter
+failure: a plain value is dropped and the target stays nil, with no warning at
+all. Wrap it - `button.action_target = GLib::Variant.new('x')`.
+
+Menu actions are therefore high-value test targets, and the failures are
+spread across the whole severity range: a plain string assignment only warns, so
+the app runs on with the wrong menu item ticked; `state.get_boolean` raises the
+moment a toggle is used; and a plain boolean assignment segfaults. None of that
+shows up in `ruby -c`, in a successful require, or in a screenshot of the window
+at rest - you have to activate the action and read the state back:
 
 ```ruby
 d.step('sort by title') do
