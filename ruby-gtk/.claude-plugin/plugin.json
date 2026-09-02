@@ -1,7 +1,7 @@
 {
   "name": "ruby-gtk",
-  "description": "Ruby GTK4/Libadwaita tooling for Claude Code: build, review, and plan Ruby GTK4 desktop apps using the declarative memoized-widget pattern.",
-  "version": "0.1.0",
+  "description": "Ruby GTK4/Libadwaita tooling for Claude Code: build, review, and plan Ruby GTK4 desktop apps using the declarative memoized-widget pattern, and test them by driving the UI headlessly.",
+  "version": "0.2.0",
   "author": {
     "name": "General Intelligence Systems",
     "url": "https://github.com/general-intelligence-systems"
@@ -12,6 +12,8 @@
     "gtk4",
     "libadwaita",
     "gnome",
-    "desktop"
+    "desktop",
+    "testing",
+    "headless"
   ]
 }

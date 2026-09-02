@@ -19,7 +19,7 @@
     {
       "name": "ruby-gtk",
       "source": "./ruby-gtk",
-      "description": "Ruby GTK4/Libadwaita tooling for Claude Code: build, review, and plan Ruby GTK4 desktop apps using the declarative memoized-widget pattern."
+      "description": "Ruby GTK4/Libadwaita tooling for Claude Code: build, review, and plan Ruby GTK4 desktop apps using the declarative memoized-widget pattern, and test them by driving the UI headlessly."
     },
     {
       "name": "rubycam",

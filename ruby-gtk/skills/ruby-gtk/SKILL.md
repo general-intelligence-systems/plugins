@@ -84,8 +84,11 @@ The Ruby bindings differ from C/Vala docs. Before writing any Adwaita code, read
 1. Read `references/planning-methodology.md`. Analyze before coding; identify what's over-engineered in the source (chunk systems, async operation classes, aggregators) and drop it.
 2. Build display-only first, then persistence, then C/U/D one operation at a time, verifying each checkpoint.
 3. If using Adwaita widgets, read `references/adwaita-quirks.md` first.
+4. Verify each checkpoint by running the app, not by reading it - use the companion `ruby-gtk-testing` skill, which drives the UI headlessly and takes screenshots. A syntax check proves nothing about a widget tree.
 
 **Writing any widget code**: consult `references/declarative-patterns.md` for the widget's pattern (signals, factories, drawing, menus, dropdowns, gestures) and copy the shape from a real example in `references/examples/` rather than inventing.
+
+**Checking that it works**: load the `ruby-gtk-testing` skill and drive the app. Widget wiring, dialogs and GAction state all fail silently in ways that `ruby -c` and a successful `require` will not show.
 
 **Reviewing code against the guide**: check every rule in the table above, in order, citing rule numbers. Then check `references/style-rules.md` for the full rationale and edge cases of each rule.
 

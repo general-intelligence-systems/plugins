@@ -10,7 +10,7 @@ This document catalogs differences between Adwaita's C/Vala API and the Ruby bin
 2. [Constructor Signatures](#2-constructor-signatures)
 3. [Widgets That Work Normally](#3-widgets-that-work-normally)
 4. [Widgets With Quirks](#4-widgets-with-quirks)
-5. [Broken/Unusable Widgets](#5-brokenunusable-widgets)
+5. [Broken Widgets and Unsupported APIs](#5-broken-widgets-and-unsupported-apis)
 6. [Working Adwaita App Pattern](#6-working-adwaita-app-pattern)
 
 ---
@@ -175,35 +175,87 @@ end
 
 ---
 
-## 5. Broken/Unusable Widgets
+## 5. Broken Widgets and Unsupported APIs
 
-### Adwaita::Application and Adwaita::ApplicationWindow
+### Adwaita::Application
 
 **DO NOT USE.** The Ruby bindings have type interface issues.
 
 ```ruby
-# âŒ BROKEN - inheritance doesn't work
+# BROKEN - inheritance doesn't work
 class App < Adwaita::Application
   # Type errors when passing to ApplicationWindow
 end
 
-# âŒ BROKEN - even composition fails
+# BROKEN - even composition fails
 def app
   @app ||= Adwaita::Application.new('org.example.app', :default_flags)
 end
-# MainWindow(app) still fails with type errors
 
-# âœ… WORKING - use Gtk versions instead
+# WORKING - use the Gtk version instead
 def app
   @app ||= Gtk::Application.new('org.example.contacts', :default_flags)
 end
+```
+
+### Adwaita::ApplicationWindow
+
+**Was broken; works as of ruby-gnome 4.3.8.** Earlier notes in this guide said
+to use `Gtk::ApplicationWindow` instead. On 4.3.8 the Adwaita version
+constructs from a `Gtk::Application`, accepts actions via `add_action`, and
+takes `title` and `icon_name` normally.
+
+**Prefer it, because it is what makes `Adwaita::Dialog` present inside the
+window.** Presented on a `Gtk::ApplicationWindow`, an `AdwDialog` falls back to
+spawning a separate toplevel - the dialog still works, but it is a floating
+window rather than the in-window sheet the design expects.
+
+```ruby
+# The application object still comes from Gtk - only the window changes.
+def app = @app ||= Gtk::Application.new('org.example.app', :default_flags)
 
 def window
-  @window ||= Gtk::ApplicationWindow.new(app)
+  @window ||= Adwaita::ApplicationWindow.new(app).tap do |win|
+    win.title = 'My App'
+    win.set_default_size(800, 600)
+  end
 end
 ```
 
-**You can still use all other Adwaita widgets inside the Gtk::ApplicationWindow.**
+**It takes `content=`, not `child=`.** `AdwApplicationWindow` owns its own
+internal layout, so assigning `child` is wrong:
+
+```ruby
+# WRONG - Gtk::Window API
+window.child = toast_overlay
+
+# RIGHT
+window.content = toast_overlay
+```
+
+To check which behaviour you are getting, read
+`Gtk::Window.list_toplevels.length` before and after `dialog.present(window)`:
+it stays at 1 with an Adwaita window and goes to 2 with a Gtk one.
+
+### Dark theme: use StyleManager, not GtkSettings
+
+Setting `gtk-application-prefer-dark-theme` warns and does nothing under
+libadwaita. The colour scheme is Adwaita's to decide:
+
+```ruby
+# WRONG - warns "Using GtkSettings:gtk-application-prefer-dark-theme
+#         with libadwaita is unsupported"
+Gtk::Settings.default.gtk_application_prefer_dark_theme = true
+
+# RIGHT
+Adwaita::StyleManager.default.color_scheme =
+  dark ? Adwaita::ColorScheme::FORCE_DARK : Adwaita::ColorScheme::DEFAULT
+```
+
+`Adwaita::ColorScheme` provides `DEFAULT`, `FORCE_DARK`, `FORCE_LIGHT`,
+`PREFER_DARK` and `PREFER_LIGHT`. Use `DEFAULT` rather than `FORCE_LIGHT` to
+turn a dark preference back off, so the desktop's own setting is followed
+again.
 
 ---
 
@@ -218,12 +270,12 @@ class MyApp
   def build
     app.tap do |a|
       a.signal_connect('activate') do
-        a.add_window(window)
-
+        # AdwApplicationWindow registers itself with the application.
         window.tap do |win|
           win.title = 'My App'
           win.set_default_size(800, 600)
-          win.child = toast_overlay
+          # AdwApplicationWindow takes `content`, not `child`.
+          win.content = toast_overlay
 
           toast_overlay.tap do |to|
             to.child = split_view
@@ -254,9 +306,11 @@ class MyApp
 
   def run = app.run([])
 
-  # Core GTK widgets (Adwaita versions broken)
+  # Adwaita::Application is still broken, so the application object is a Gtk
+  # one. Adwaita::ApplicationWindow works as of 4.3.8, and using it is what
+  # keeps Adwaita::Dialog inside the window instead of spawning a toplevel.
   def app = @app ||= Gtk::Application.new('org.example.myapp', :default_flags)
-  def window = @window ||= Gtk::ApplicationWindow.new(app)
+  def window = @window ||= Adwaita::ApplicationWindow.new(app)
 
   # Adwaita widgets that work
   def toast_overlay = @toast_overlay ||= Adwaita::ToastOverlay.new
@@ -296,8 +350,8 @@ MyApp.new.build.run
 
 | Widget | Constructor | Notes |
 |--------|-------------|-------|
-| `Adwaita::Application` | âŒ BROKEN | Use `Gtk::Application` |
-| `Adwaita::ApplicationWindow` | âŒ BROKEN | Use `Gtk::ApplicationWindow` |
+| `Adwaita::Application` | BROKEN | Use `Gtk::Application` |
+| `Adwaita::ApplicationWindow` | `.new(gtk_app)` | Works since 4.3.8; takes `content=`, keeps dialogs in-window |
 | `Adwaita::NavigationPage` | `.new(child, title)` | Positional args only |
 | `Adwaita::NavigationSplitView` | `.new` | Works normally |
 | `Adwaita::ToolbarView` | `.new` | Works normally |
@@ -312,6 +366,18 @@ MyApp.new.build.run
 | `Adwaita::PreferencesRow` | `.new` | Set `child` manually |
 | `Adwaita::ActionRow` | `.new` | Works normally |
 | `Adwaita::EntryRow` | `.new` | Works normally |
+| `Adwaita::PasswordEntryRow` | `.new` | Works normally |
+| `Adwaita::SwitchRow` | `.new` | Works normally; read state with `active?` |
+| `Adwaita::ComboRow` | `.new` | `model=` a `Gtk::StringList`, `selected` is an index |
+| `Adwaita::ExpanderRow` | `.new` | Works normally |
+| `Adwaita::SpinRow` | needs args | `.new` with no args raises; read the error for the signature |
+| `Adwaita::Dialog` | `.new` | `present(parent)`; in-window only under an Adwaita window |
+| `Adwaita::AlertDialog` | `.new` | Works normally; `add_response` / `choose` |
+| `Adwaita::PreferencesDialog` | `.new` | Works normally; `add()` takes pages |
+| `Adwaita::PreferencesPage` | `.new` | Works normally; `add()` takes groups |
+| `Adwaita::WindowTitle` | `.new(title, subtitle)` | Positional args |
+| `Adwaita::ButtonContent` | `.new` | Works normally |
+| `Adwaita::StyleManager` | `.default` | Singleton; set `color_scheme` for dark mode |
 
 ---
 
